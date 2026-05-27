@@ -1,658 +1,1142 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>EMTP — Efficient Multi-Robot Task Planning</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>EMTP: Efficient Multi-Robot Task Planning with Large Language Models</title>
+  <meta name="description" content="EMTP project page for efficient and dynamic multi-robot task allocation and planning with 3D scene graph grounding and hierarchical LLM orchestration.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:ital,opsz,wght@0,8..60,300;0,8..60,400;0,8..60,600;1,8..60,400&family=Source+Sans+3:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Source+Serif+4:opsz,wght@8..60,500;8..60,650&display=swap" rel="stylesheet">
   <style>
     :root {
-      --bg: #ffffff;
-      --section-bg: #f8f8f8;
-      --border: #e8e8e8;
-      --text: #1c1c1c;
-      --muted: #666;
-      --accent: #1a56a4;
-      --accent2: #0e3d7a;
+      --paper: #fbfaf7;
+      --surface: #ffffff;
+      --ink: #151719;
+      --muted: #5f666d;
+      --line: #dedbd2;
+      --navy: #15324a;
+      --blue: #7fc7ec;
+      --blue-soft: #e8f6fc;
+      --reason: #f0a56d;
+      --reason-soft: #fff0e7;
+      --green: #6fb887;
+      --green-soft: #ebf7ef;
+      --rust: #b75d38;
+      --shadow: 0 18px 50px rgba(20, 23, 25, 0.09);
     }
 
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    * { box-sizing: border-box; }
     html { scroll-behavior: smooth; }
 
     body {
-      font-family: 'Source Sans 3', sans-serif;
-      background: var(--bg);
-      color: var(--text);
-      font-size: 16px;
-      line-height: 1.7;
+      margin: 0;
+      background: var(--paper);
+      color: var(--ink);
+      font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      line-height: 1.65;
+      overflow-x: hidden;
       -webkit-font-smoothing: antialiased;
     }
 
-    /* ── HERO ── */
-    .hero {
-      text-align: center;
-      padding: 72px 24px 56px;
-      max-width: 860px;
+    a { color: inherit; }
+    img, video { max-width: 100%; }
+
+    .topbar {
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      background: rgba(251, 250, 247, 0.92);
+      border-bottom: 1px solid rgba(21, 23, 25, 0.1);
+      backdrop-filter: blur(16px);
+    }
+
+    .nav {
+      width: min(1120px, calc(100vw - 32px));
+      min-height: 62px;
       margin: 0 auto;
-    }
-
-    .conf-badge {
-      display: inline-block;
-      background: var(--accent);
-      color: #fff;
-      font-size: 12px;
-      font-weight: 600;
-      letter-spacing: 0.1em;
-      text-transform: uppercase;
-      padding: 5px 14px;
-      border-radius: 3px;
-      margin-bottom: 28px;
-    }
-
-    .hero h1 {
-      font-family: 'Source Serif 4', serif;
-      font-size: clamp(1.9rem, 4.5vw, 2.9rem);
-      font-weight: 600;
-      line-height: 1.25;
-      letter-spacing: -0.01em;
-      margin-bottom: 10px;
-    }
-
-    .paper-subtitle {
-      font-family: 'Source Serif 4', serif;
-      font-size: clamp(1rem, 2.2vw, 1.3rem);
-      font-weight: 300;
-      font-style: italic;
-      color: var(--muted);
-      margin-bottom: 32px;
-      line-height: 1.5;
-    }
-
-    .authors {
       display: flex;
-      flex-wrap: wrap;
-      justify-content: center;
-      margin-bottom: 10px;
+      align-items: center;
+      justify-content: space-between;
+      gap: 18px;
     }
 
-    .author {
-      font-size: 15.5px;
-      font-weight: 500;
-      color: var(--accent);
-      text-decoration: none;
-      padding: 0 14px;
-      position: relative;
-    }
-    .author:not(:last-child)::after {
-      content: '·';
-      position: absolute;
-      right: -2px;
-      color: #bbb;
-    }
-    .author:hover { color: var(--accent2); text-decoration: underline; }
-    .author.me { color: var(--text); font-weight: 600; }
-    .author.me:hover { text-decoration: none; cursor: default; }
-
-    .affiliations {
-      font-size: 13.5px;
-      color: var(--muted);
-      margin-bottom: 32px;
-    }
-
-    .link-buttons {
-      display: flex;
-      flex-wrap: wrap;
-      justify-content: center;
-      gap: 10px;
-    }
-
-    .link-btn {
+    .brand {
       display: inline-flex;
       align-items: center;
-      gap: 8px;
-      padding: 9px 22px;
-      border-radius: 28px;
-      font-size: 14px;
-      font-weight: 500;
-      text-decoration: none;
-      border: 1.5px solid var(--border);
-      background: #fff;
-      color: var(--text);
-      transition: all 0.18s;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.06);
-    }
-    .link-btn:hover { border-color: var(--accent); color: var(--accent); }
-    .link-btn svg { width: 16px; height: 16px; flex-shrink: 0; }
-    .link-btn.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
-    .link-btn.primary:hover { background: var(--accent2); border-color: var(--accent2); color: #fff; }
-
-    .divider { height: 1px; background: var(--border); max-width: 860px; margin: 0 auto; }
-    .divider-full { height: 1px; background: var(--border); }
-
-    /* ── TEASER ── */
-    .teaser {
-      max-width: 860px;
-      margin: 0 auto;
-      padding: 48px 24px;
-      text-align: center;
-    }
-
-    .fig-placeholder {
-      width: 100%;
-      background: var(--section-bg);
-      border: 1.5px dashed #ccc;
-      border-radius: 6px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
       gap: 10px;
-      color: #aaa;
-      font-size: 13.5px;
-      padding: 48px 24px;
-    }
-    .fig-placeholder svg { width: 36px; height: 36px; opacity: 0.3; }
-
-    .fig-caption {
-      margin-top: 14px;
-      font-size: 14px;
-      color: var(--muted);
-      line-height: 1.65;
-      text-align: left;
+      color: var(--navy);
+      font-weight: 800;
+      text-decoration: none;
     }
 
-    /* ── SECTION ── */
-    .section { max-width: 860px; margin: 0 auto; padding: 52px 24px; }
-
-    .section-alt-wrap { background: var(--section-bg); }
-
-    .section h2 {
-      font-family: 'Source Serif 4', serif;
-      font-size: 1.65rem;
-      font-weight: 600;
-      margin-bottom: 24px;
-      padding-bottom: 10px;
-      border-bottom: 2px solid var(--accent);
-      display: inline-block;
-    }
-
-    /* ── ABSTRACT ── */
-    .abstract-text {
-      font-size: 15.5px;
-      line-height: 1.85;
-      color: #333;
-      text-align: justify;
-    }
-
-    .highlights {
+    .brand-mark {
+      width: 34px;
+      height: 34px;
       display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 14px;
-      margin-top: 32px;
-    }
-
-    .highlight-card {
-      background: #fff;
-      border: 1px solid var(--border);
-      border-radius: 6px;
-      padding: 20px 16px;
-      text-align: center;
-      box-shadow: 0 1px 4px rgba(0,0,0,0.04);
-    }
-
-    .highlight-card .number {
-      font-family: 'Source Serif 4', serif;
-      font-size: 2.2rem;
-      font-weight: 600;
-      color: var(--accent);
-      line-height: 1;
-      margin-bottom: 6px;
-    }
-
-    .highlight-card .desc {
-      font-size: 12.5px;
-      color: var(--muted);
-      line-height: 1.5;
-    }
-
-    /* ── METHOD STEPS ── */
-    .method-steps {
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 1px;
-      background: var(--border);
-      border: 1px solid var(--border);
-      border-radius: 6px;
-      overflow: hidden;
-      margin-bottom: 28px;
-    }
-
-    .step { background: #fff; padding: 22px 18px; }
-
-    .step-num {
-      font-family: 'Source Serif 4', serif;
-      font-size: 1.8rem;
-      font-weight: 300;
-      color: #ddd;
-      line-height: 1;
-      margin-bottom: 10px;
-    }
-
-    .step h4 {
-      font-size: 12.5px;
-      font-weight: 600;
-      color: var(--accent);
-      margin-bottom: 7px;
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-    }
-
-    .step p { font-size: 13.5px; color: var(--muted); line-height: 1.6; }
-
-    /* ── TABLE ── */
-    .results-wrap { overflow-x: auto; margin-top: 28px; }
-
-    table { width: 100%; border-collapse: collapse; font-size: 14px; }
-
-    thead tr { background: var(--accent); color: #fff; }
-    thead th {
-      padding: 11px 14px;
-      font-weight: 600;
-      text-align: center;
+      place-items: center;
+      border-radius: 8px;
+      background: var(--navy);
+      color: #fff;
       font-size: 13px;
     }
-    thead th:first-child { text-align: left; }
 
-    tbody tr:nth-child(even) { background: #f5f7fb; }
-    tbody tr:hover { background: #eaf0fa; }
-    tbody td { padding: 10px 14px; text-align: center; border-bottom: 1px solid var(--border); color: #333; }
-    tbody td:first-child { text-align: left; font-weight: 500; }
-    .ours td { font-weight: 700; }
-    .ours td:first-child::after { content: ' (ours)'; font-weight: 400; color: var(--accent); font-size: 11.5px; }
-    .best { color: var(--accent); font-weight: 700; }
-    .worst { color: #c0392b; }
+    .nav-links {
+      display: flex;
+      align-items: center;
+      gap: 18px;
+      color: var(--muted);
+      font-size: 14px;
+      font-weight: 650;
+    }
 
-    /* ── VIDEO ── */
-    .video-grid {
-      display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 24px;
+    .nav-links a {
+      text-decoration: none;
+    }
+
+    .nav-links a:hover { color: var(--rust); }
+
+    .hero {
+      width: min(1120px, calc(100vw - 32px));
+      margin: 0 auto;
+      padding: 72px 0 54px;
+      text-align: center;
+    }
+
+    h1, h2, h3 {
+      margin: 0;
+      line-height: 1.08;
+      letter-spacing: 0;
+    }
+
+    h1 {
+      font-family: "Source Serif 4", Georgia, serif;
+      font-size: clamp(2.2rem, 3.5vw, 2.85rem);
+      font-weight: 650;
+      color: var(--navy);
+      max-width: 100%;
+      overflow-wrap: break-word;
+    }
+
+    .title-line {
+      display: block;
+    }
+
+    .abbr {
+      color: #c44432;
+    }
+
+    .word {
+      white-space: nowrap;
+    }
+
+    .hero-meta {
+      width: min(1040px, 100%);
+      margin: 20px auto 0;
+      text-align: center;
+    }
+
+    .hero-note {
+      margin: 0;
+      color: #3f474d;
+      font-size: clamp(1rem, 1.8vw, 1.18rem);
+      white-space: nowrap;
+    }
+
+    .hero-affiliation {
+      margin-top: 8px;
+      color: var(--muted);
+      font-size: 15px;
+      font-weight: 600;
+    }
+
+    .actions {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 10px;
       margin-top: 28px;
     }
 
-    .video-item h4 { font-size: 14.5px; font-weight: 600; margin-bottom: 10px; }
-
-    .video-placeholder {
-      width: 100%;
-      aspect-ratio: 16/9;
-      background: #111827;
-      border-radius: 6px;
-      display: flex;
-      flex-direction: column;
+    .btn {
+      display: inline-flex;
       align-items: center;
       justify-content: center;
+      gap: 9px;
+      min-height: 44px;
+      padding: 0 17px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--surface);
+      color: var(--ink);
+      text-decoration: none;
+      font-size: 14px;
+      font-weight: 750;
+      box-shadow: 0 8px 20px rgba(21, 23, 25, 0.05);
+    }
+
+    .btn.primary {
+      border-color: var(--navy);
+      background: var(--navy);
+      color: #fff;
+    }
+
+    .btn:hover {
+      transform: translateY(-1px);
+      border-color: var(--rust);
+    }
+
+    .icon {
+      width: 18px;
+      height: 18px;
+      flex: 0 0 auto;
+    }
+
+    section {
+      border-top: 1px solid var(--line);
+    }
+
+    .section-inner {
+      width: min(1040px, calc(100vw - 32px));
+      margin: 0 auto;
+      padding: 66px 0;
+      text-align: left;
+    }
+
+    .section-kicker {
+      color: var(--rust);
+      font-size: 16px;
+      text-transform: uppercase;
+      font-weight: 800;
+      margin-bottom: 16px;
+    }
+
+    h2 {
+      font-family: "Source Serif 4", Georgia, serif;
+      font-size: clamp(2rem, 3.6vw, 3rem);
+      font-weight: 650;
+      color: var(--navy);
+    }
+
+    .lead {
+      max-width: 780px;
+      margin: 16px 0 0;
+      color: #3d454b;
+      font-size: 17px;
+    }
+
+    .abstract {
+      margin-top: 28px;
+      max-width: 850px;
+      color: #24282c;
+      font-size: 16px;
+      text-align: left;
+    }
+
+    .abstract p { margin: 0; }
+
+    .keywords {
+      display: flex;
+      flex-wrap: wrap;
       gap: 10px;
-    }
-    .video-placeholder svg { width: 44px; height: 44px; color: rgba(255,255,255,0.5); }
-    .video-placeholder span { font-size: 12.5px; color: rgba(255,255,255,0.35); }
-
-    video { width: 100%; border-radius: 6px; border: 1px solid var(--border); display: block; }
-
-    /* ── CITATION ── */
-    .citation-block {
-      background: #1e1e1e;
-      color: #d4d4d4;
-      border-radius: 6px;
-      padding: 24px 28px;
-      font-family: 'Courier New', monospace;
-      font-size: 13.5px;
-      line-height: 1.7;
-      overflow-x: auto;
-      margin-top: 20px;
-      position: relative;
+      margin-top: 30px;
     }
 
-    .copy-btn {
-      position: absolute;
-      top: 14px;
-      right: 14px;
-      background: #333;
-      color: #aaa;
-      border: none;
-      border-radius: 4px;
-      padding: 5px 12px;
+    .keyword {
+      display: inline-flex;
+      align-items: center;
+      min-height: 38px;
+      padding: 0 14px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      background: #fff;
+      color: var(--navy);
+      font-size: 13px;
+      font-weight: 750;
+    }
+
+    .method-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 14px;
+      margin-top: 30px;
+    }
+
+    .method-card {
+      padding: 24px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--surface);
+      box-shadow: 0 12px 30px rgba(21, 23, 25, 0.05);
+    }
+
+    .method-card .num {
+      color: var(--rust);
       font-size: 12px;
-      cursor: pointer;
-      font-family: 'Source Sans 3', sans-serif;
-      transition: all 0.18s;
+      font-weight: 850;
+      margin-bottom: 12px;
     }
-    .copy-btn:hover { background: #555; color: #fff; }
 
-    .bib-key { color: #569cd6; }
-    .bib-field { color: #9cdcfe; }
-    .bib-val { color: #ce9178; }
+    .method-card h3 {
+      color: var(--navy);
+      font-size: 18px;
+      margin-bottom: 10px;
+    }
 
-    /* ── FOOTER ── */
-    footer {
+    .method-card p {
+      color: var(--muted);
+      font-size: 14px;
+      margin: 0;
+      text-align: left;
+    }
+
+    .method-list {
+      display: grid;
+      gap: 14px;
+      margin-top: 30px;
+    }
+
+    .method-item {
+      padding: 24px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fff;
+      box-shadow: 0 12px 30px rgba(21, 23, 25, 0.05);
+    }
+
+    .method-item .num {
+      color: var(--rust);
+      font-size: 12px;
+      font-weight: 850;
+      margin-bottom: 12px;
+      text-transform: uppercase;
+    }
+
+    .method-item h3 {
+      color: var(--navy);
+      font-size: 20px;
+      margin-bottom: 10px;
+    }
+
+    .method-item p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .module-list {
+      display: grid;
+      gap: 12px;
+      margin: 16px 0 0;
+      padding: 0;
+      list-style: none;
+    }
+
+    .module-list li {
+      display: grid;
+      grid-template-columns: 16px minmax(0, 1fr);
+      gap: 10px;
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .module-list strong {
+      color: var(--navy);
+    }
+
+    .flow-board {
+      margin-top: 28px;
+      padding: 20px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fff;
+      box-shadow: var(--shadow);
+    }
+
+    .adaptive-compare {
+      display: grid;
+      gap: 16px;
+      margin-top: 28px;
+    }
+
+    .method-item .adaptive-compare {
+      margin-top: 18px;
+      gap: 12px;
+    }
+
+    .adaptive-compare .flow-board,
+    .adaptive-compare .figure {
+      margin-top: 0;
+      box-shadow: 0 12px 30px rgba(21, 23, 25, 0.05);
+    }
+
+    .method-item .flow-board {
+      padding: 14px;
+    }
+
+    .method-item .compact-figure img {
+      max-height: 260px;
+      object-fit: contain;
+    }
+
+    .module-row {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+
+    .module {
+      min-height: 64px;
+      padding: 16px 18px;
+      border-radius: 8px;
+      border: 1px solid var(--line);
+    }
+
+    .module.filtering { background: var(--blue-soft); border-color: #a7d9f0; }
+    .module.reasoning { background: var(--reason-soft); border-color: #f2be95; }
+    .module.allocation { background: var(--green-soft); border-color: #9ecfac; }
+
+    .module h3 {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      font-size: 16px;
+      color: var(--navy);
+    }
+
+    .dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 999px;
+      display: inline-block;
+    }
+
+    .dot.blue { background: var(--blue); }
+    .dot.reason { background: var(--reason); }
+    .dot.green { background: var(--green); }
+
+    .module p {
+      display: none;
+      margin: 0;
+      color: var(--muted);
+      font-size: 13px;
+      text-align: left;
+    }
+
+    .event-table {
+      display: grid;
+      gap: 8px;
+    }
+
+    .event-row {
+      display: grid;
+      grid-template-columns: 1.05fr repeat(3, minmax(0, 1fr));
+      gap: 8px;
+      align-items: stretch;
+    }
+
+    .event-row > div {
+      min-height: 42px;
+      display: flex;
+      align-items: center;
+      padding: 9px 11px;
+      border-radius: 7px;
+      background: #f7f4ed;
+      color: #2b3034;
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .method-item .event-row > div {
+      min-height: 36px;
+      padding: 7px 9px;
+      font-size: 12px;
+    }
+
+    .event-row .invoked { background: #e9f7ee; color: #266138; }
+    .event-row .invoked.filtering { background: var(--blue-soft); color: #1f6683; }
+    .event-row .invoked.reasoning { background: var(--reason-soft); color: #9b5220; }
+    .event-row .invoked.allocation { background: var(--green-soft); color: #266138; }
+    .event-row .cached { background: #eef0f2; color: #626a70; }
+    .event-row.header > div {
+      background: var(--navy);
+      color: #fff;
+      font-size: 12px;
+      text-transform: uppercase;
+    }
+
+    .figure {
+      margin: 22px 0 0;
+      min-width: 0;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      overflow: hidden;
+      background: #fff;
+      box-shadow: var(--shadow);
+    }
+
+    .figure img {
+      display: block;
+      width: 100%;
+      background: #fff;
+    }
+
+    figcaption {
+      padding: 15px 18px 17px;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.55;
+      border-top: 1px solid var(--line);
+      background: #fff;
+    }
+
+    .overview-figure {
+      margin-top: 28px;
+      margin-bottom: 72px;
+    }
+
+    .overview-figure figcaption,
+    .compact-figure figcaption {
+      display: none;
+    }
+
+    .setup-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 12px;
+      margin-top: 28px;
+    }
+
+    .setup-item {
+      padding: 18px;
+      min-height: 120px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fff;
+    }
+
+    .setup-item strong {
+      display: block;
+      margin-bottom: 7px;
+      color: var(--navy);
+      font-size: 14px;
+    }
+
+    .setup-item span {
+      display: block;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.5;
+    }
+
+    .setup-panel {
+      margin-top: 28px;
+      padding: 22px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fff;
+      box-shadow: 0 12px 30px rgba(21, 23, 25, 0.05);
+    }
+
+    .setup-panel h3 {
+      color: var(--navy);
+      font-size: 20px;
+      margin-bottom: 14px;
+    }
+
+    .environment-images {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 16px;
+      align-items: end;
+    }
+
+    .environment-item {
       text-align: center;
-      padding: 36px 24px;
-      background: var(--section-bg);
-      border-top: 1px solid var(--border);
     }
-    footer p { font-size: 13px; color: var(--muted); line-height: 1.9; }
-    footer a { color: var(--accent); text-decoration: none; }
-    footer a:hover { text-decoration: underline; }
 
-    /* ── ANIMATIONS ── */
-    .fade { opacity: 0; transform: translateY(18px); animation: fadeUp 0.65s ease forwards; }
-    .fade:nth-child(1) { animation-delay: 0.05s; }
-    .fade:nth-child(2) { animation-delay: 0.12s; }
-    .fade:nth-child(3) { animation-delay: 0.19s; }
-    .fade:nth-child(4) { animation-delay: 0.26s; }
-    .fade:nth-child(5) { animation-delay: 0.33s; }
-    .fade:nth-child(6) { animation-delay: 0.40s; }
-    @keyframes fadeUp { to { opacity: 1; transform: translateY(0); } }
+    .environment-item img {
+      width: 100%;
+      max-height: 210px;
+      object-fit: contain;
+      background: #fff;
+    }
+
+    .environment-item strong {
+      display: block;
+      margin-top: 8px;
+      color: var(--navy);
+      font-size: 14px;
+    }
+
+    .setup-chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 18px;
+    }
+
+    .setup-chip {
+      display: inline-flex;
+      min-height: 36px;
+      align-items: center;
+      padding: 0 13px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      background: #fbfaf7;
+      color: var(--navy);
+      font-size: 13px;
+      font-weight: 750;
+    }
+
+    .setup-note {
+      margin: 18px 0 0;
+      color: #2f363b;
+      font-size: 15px;
+    }
+
+    .scenario-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+      margin-top: 16px;
+    }
+
+    .scenario-item {
+      padding: 16px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fbfaf7;
+    }
+
+    .scenario-item strong {
+      display: block;
+      color: var(--navy);
+      font-size: 14px;
+      margin-bottom: 6px;
+    }
+
+    .scenario-item span {
+      display: block;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.5;
+    }
+
+    .constraint-figure img {
+      max-height: 380px;
+      object-fit: contain;
+    }
+
+    .two-col {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 16px;
+      margin-top: 16px;
+    }
+
+    .result-stack {
+      margin-top: 30px;
+      display: grid;
+      gap: 22px;
+    }
+
+    .result-pair {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 16px;
+      margin-top: 28px;
+      align-items: start;
+    }
+
+    .result-block {
+      padding: 20px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fff;
+      box-shadow: 0 12px 30px rgba(21, 23, 25, 0.05);
+    }
+
+    .result-block h3 {
+      color: var(--navy);
+      font-size: 19px;
+      margin-bottom: 8px;
+    }
+
+    .result-block p {
+      max-width: 820px;
+      margin: 0 auto 14px;
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .result-gallery {
+      display: grid;
+      grid-auto-flow: column;
+      grid-auto-columns: minmax(280px, 1fr);
+      gap: 14px;
+      overflow-x: auto;
+      overscroll-behavior-x: contain;
+      scroll-snap-type: x mandatory;
+      padding-bottom: 8px;
+    }
+
+    .result-gallery .figure {
+      margin: 0;
+      scroll-snap-align: start;
+      box-shadow: none;
+    }
+
+    .result-figure {
+      margin-top: 0;
+      box-shadow: 0 12px 30px rgba(21, 23, 25, 0.05);
+    }
+
+    .result-figure img {
+      width: 100%;
+      max-height: 430px;
+      object-fit: contain;
+    }
+
+    .result-figure figcaption {
+      padding: 12px 14px;
+      font-weight: 750;
+      color: var(--navy);
+      text-align: center;
+    }
+
+    .media-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 16px;
+      margin-top: 28px;
+    }
+
+    .video-panel {
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: 0 12px 30px rgba(21, 23, 25, 0.07);
+    }
+
+    .video-panel video {
+      display: block;
+      width: 100%;
+      aspect-ratio: 16 / 9;
+      object-fit: cover;
+      background: #141719;
+    }
+
+    .video-panel h3 {
+      padding: 14px 16px 4px;
+      font-size: 16px;
+      color: var(--navy);
+    }
+
+    .video-panel p {
+      margin: 0;
+      padding: 0 16px 16px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .contact {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 24px;
+    }
+
+    .contact-layout {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(240px, 360px);
+      gap: 34px;
+      align-items: center;
+      margin-top: 20px;
+    }
+
+    .contact-copy {
+      min-width: 0;
+    }
+
+    .contact-logo {
+      display: flex;
+      justify-content: flex-end;
+      width: 100%;
+    }
+
+    .contact-logo img {
+      width: min(100%, 340px);
+      max-height: 120px;
+      object-fit: contain;
+    }
+
+    footer {
+      border-top: 1px solid var(--line);
+      padding: 34px 16px;
+      color: var(--muted);
+      text-align: center;
+      font-size: 13px;
+    }
+
+    @media (max-width: 900px) {
+      .nav-links { display: none; }
+      .method-grid,
+      .setup-grid,
+      .media-grid,
+      .two-col {
+        grid-template-columns: 1fr;
+      }
+      .setup-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+      .hero-meta {
+        grid-template-columns: 1fr;
+        gap: 14px;
+      }
+      .hero-note {
+        white-space: normal;
+      }
+      .adaptive-compare,
+      .result-pair {
+        grid-template-columns: 1fr;
+      }
+      .contact-layout {
+        grid-template-columns: 1fr;
+      }
+      .contact-logo {
+        justify-content: flex-start;
+      }
+      .module-row {
+        grid-template-columns: 1fr;
+      }
+      .event-row {
+        min-width: 680px;
+      }
+      .event-table {
+        overflow-x: auto;
+      }
+    }
 
     @media (max-width: 640px) {
-      .highlights { grid-template-columns: repeat(2, 1fr); }
-      .method-steps { grid-template-columns: repeat(2, 1fr); }
-      .video-grid { grid-template-columns: 1fr; }
+      .nav,
+      .hero,
+      .section-inner {
+        width: calc(100vw - 48px);
+        max-width: 320px;
+        margin-left: 24px;
+        margin-right: 0;
+      }
+      .hero {
+        padding: 50px 0 42px;
+      }
+      h1 {
+        font-size: clamp(1.8rem, 9vw, 2.25rem);
+      }
+      .setup-grid {
+        grid-template-columns: 1fr;
+      }
+      .environment-images {
+        grid-template-columns: 1fr;
+      }
+      .scenario-grid {
+        grid-template-columns: 1fr;
+      }
+      .actions {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+      .btn {
+        width: 100%;
+        padding: 0 12px;
+      }
+      .section-inner {
+        padding: 48px 0;
+      }
+      .abstract {
+        text-align: left;
+      }
+      .result-block {
+        padding: 14px;
+      }
+      .result-gallery {
+        grid-auto-columns: minmax(260px, 92%);
+      }
     }
   </style>
 </head>
 <body>
-
-<!-- ══ HERO ══ -->
-<div style="border-bottom: 1px solid var(--border);">
-  <div class="hero">
-    <div class="conf-badge fade">ICRA 2026 · Late Breaking Results</div>
-
-    <h1 class="fade">
-      Efficient Multi-Robot Task Planning via<br>
-      Semantic 3D Scene Graphs and<br>
-      Hierarchical LLM Orchestration
-    </h1>
-
-    <p class="paper-subtitle fade">
-      Near-real-time replanning in dynamic environments through<br>
-      selective LLM invocation and combinatorial optimization
-    </p>
-
-    <div class="authors fade">
-      <span class="author me">Your Name</span>
-      <a href="#" class="author">Co-Author Name</a>
-      <a href="#" class="author">Advisor Name</a>
-    </div>
-
-    <p class="affiliations fade">[Department] · [University Name]</p>
-
-    <div class="link-buttons fade">
-      <a href="#" class="link-btn primary">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
-        Paper
+  <header class="topbar">
+    <nav class="nav" aria-label="Primary navigation">
+      <a class="brand" href="#top">
+        <span class="brand-mark">E</span>
+        <span>EMTP</span>
       </a>
-      <a href="#" class="link-btn">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
-        arXiv
-      </a>
-      <a href="https://github.com/psi0000" target="_blank" class="link-btn">
-        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.58 2 12.26c0 4.54 2.87 8.39 6.84 9.75.5.09.68-.22.68-.49v-1.71c-2.78.62-3.37-1.37-3.37-1.37-.45-1.18-1.11-1.5-1.11-1.5-.91-.64.07-.63.07-.63 1 .07 1.53 1.06 1.53 1.06.89 1.57 2.34 1.12 2.91.86.09-.66.35-1.12.63-1.38-2.22-.26-4.56-1.14-4.56-5.07 0-1.12.39-2.03 1.03-2.75-.1-.26-.45-1.3.1-2.71 0 0 .84-.28 2.75 1.05A9.38 9.38 0 0 1 12 6.84c.85 0 1.7.12 2.5.34 1.91-1.33 2.75-1.05 2.75-1.05.55 1.41.2 2.45.1 2.71.64.72 1.03 1.63 1.03 2.75 0 3.94-2.34 4.81-4.57 5.06.36.32.68.94.68 1.9v2.82c0 .27.18.59.69.49C19.14 20.65 22 16.8 22 12.26 22 6.58 17.52 2 12 2z"/></svg>
-        Code
-      </a>
-      <a href="#" class="link-btn">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>
-        Poster
-      </a>
-      <a href="#video" class="link-btn">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"/></svg>
-        Video
-      </a>
-    </div>
-  </div>
-</div>
-
-<!-- ══ TEASER ══ -->
-<div class="teaser">
-  <!--
-    여기에 메인 figure를 넣으세요:
-    <img src="static/images/teaser.png" alt="System overview" style="width:100%;border-radius:6px;border:1px solid var(--border);">
-  -->
-  <div class="fig-placeholder">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
-    <span>여기에 메인 시스템 overview figure를 삽입하세요 (static/images/teaser.png)</span>
-  </div>
-  <p class="fig-caption">
-    <strong>System overview of EMTP.</strong>
-    The framework integrates 3D Scene Graph-based semantic environment representation,
-    hierarchical LLM orchestration (Supervisor + Semantic Filtering/Reasoning Agents),
-    and a Google OR-Tools combinatorial optimizer. Dynamic events trigger selective,
-    targeted replanning rather than full re-inference.
-  </p>
-</div>
-
-<div class="divider-full"></div>
-
-<!-- ══ ABSTRACT ══ -->
-<div class="section">
-  <h2>Abstract</h2>
-  <p class="abstract-text">
-    Multi-robot task allocation (MRTA) in dynamic, unstructured environments demands real-time
-    adaptability, semantic scene understanding, and scalable planning. Existing LLM-based approaches
-    suffer from high inference costs, hallucination, and limited scalability when confronted with
-    numerous robots, tasks, and spatial constraints simultaneously. We propose <strong>EMTP</strong>
-    (Efficient Multi-Robot Task Planner), a unified framework integrating 3D Scene Graph
-    (3DSG)-based semantic environment representation, hierarchical LLM orchestration,
-    and combinatorial optimization. A Supervisor selectively invokes Semantic Filtering and
-    Semantic Reasoning Agents based on event type, compressing large-scale environmental
-    information into task-relevant constraints. These constraints are passed to a Google OR-Tools
-    solver for optimal allocation and path planning. Validated on real robot hardware
-    (1 Robot Dog + 2 UGVs) in a multi-floor indoor environment, and in simulation with up to
-    10 robots and 100 tasks, EMTP achieves a <strong>70% reduction in LLM token cost</strong> and
-    <strong>86% reduction in planning time</strong>, enabling near-real-time replanning across
-    diverse dynamic scenarios with 100% task completion rate.
-  </p>
-
-  <div class="highlights">
-    <div class="highlight-card">
-      <div class="number">70%</div>
-      <div class="desc">Reduction in<br>LLM token cost</div>
-    </div>
-    <div class="highlight-card">
-      <div class="number">86%</div>
-      <div class="desc">Reduction in<br>planning time</div>
-    </div>
-    <div class="highlight-card">
-      <div class="number">100%</div>
-      <div class="desc">Task completion<br>rate (TCR)</div>
-    </div>
-    <div class="highlight-card">
-      <div class="number">10+</div>
-      <div class="desc">Robots · 100 tasks<br>in simulation</div>
-    </div>
-  </div>
-</div>
-
-<div class="divider-full"></div>
-
-<!-- ══ METHOD ══ -->
-<div class="section-alt-wrap">
-  <div class="section">
-    <h2>Framework Overview</h2>
-
-    <div class="method-steps">
-      <div class="step">
-        <div class="step-num">01</div>
-        <h4>3D Scene Graph</h4>
-        <p>Hierarchical semantic map encoding spatial–object–relational structure. Updated on dynamic events to maintain consistency.</p>
+      <div class="nav-links">
+        <a href="#abstract">Abstract</a>
+        <a href="#method">Method</a>
+        <a href="#setup">Setup</a>
+        <a href="#results">Results</a>
+        <a href="#videos">Videos</a>
+        <a href="#contact">Contact</a>
       </div>
-      <div class="step">
-        <div class="step-num">02</div>
-        <h4>Semantic Filtering</h4>
-        <p>Prunes 3DSG to task-relevant objects only, compressing LLM context and improving reasoning accuracy.</p>
+    </nav>
+  </header>
+
+  <main id="top">
+    <section class="hero" aria-label="Project title">
+      <h1>
+        <span class="title-line">EMTP: <span class="word"><span class="abbr">E</span>fficient</span> <span class="word"><span class="abbr">M</span>ulti-Robot</span> <span class="word"><span class="abbr">T</span>ask</span> <span class="word"><span class="abbr">P</span>lanning</span></span>
+        <span class="title-line">with Large Language Models</span>
+      </h1>
+      <div class="hero-meta">
+        <p class="hero-note">Seungin Park, Minjae Jung, Changseung Kim, Woojae Shin, Seunghoon Lee, Hyondong Oh</p>
+        <div class="hero-affiliation">UNIST / KAIST</div>
       </div>
-      <div class="step">
-        <div class="step-num">03</div>
-        <h4>Semantic Reasoning</h4>
-        <p>Extracts physical and semantic constraints (spatial, priority, robot capability) from the filtered graph.</p>
+
+      <div class="actions">
+        <a class="btn primary" href="assets/docs/paper.pdf" target="_blank" rel="noopener">
+          <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M16 13H8"/><path d="M16 17H8"/><path d="M10 9H8"/></svg>
+          Paper
+        </a>
+        <a class="btn" href="assets/docs/poster.pdf" target="_blank" rel="noopener">
+          <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M9 3v18"/><path d="M3 9h18"/></svg>
+          Poster
+        </a>
+        <a class="btn" href="#videos">
+          <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+          Videos
+        </a>
+        <a class="btn" href="#contact">
+          <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16v16H4z"/><path d="m22 6-10 7L2 6"/></svg>
+          Contact
+        </a>
       </div>
-      <div class="step">
-        <div class="step-num">04</div>
-        <h4>Optimization</h4>
-        <p>Google OR-Tools solves the constrained MRTA problem for optimal allocation and path planning.</p>
-      </div>
-    </div>
+    </section>
 
-    <!--
-      Framework 다이어그램 이미지:
-      <img src="static/images/framework.png" alt="Framework" style="width:100%;border-radius:6px;border:1px solid var(--border);">
-    -->
-    <div class="fig-placeholder" style="aspect-ratio:16/6;">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
-      <span>Framework 다이어그램 이미지 (static/images/framework.png)</span>
-    </div>
-    <p class="fig-caption" style="margin-top:12px;">
-      The Supervisor orchestrates the pipeline: upon a dynamic event, it selects only the required agents,
-      validates outputs to suppress hallucination, and triggers targeted replanning via the optimizer.
-    </p>
-  </div>
-</div>
-
-<div class="divider-full"></div>
-
-<!-- ══ RESULTS ══ -->
-<div class="section">
-  <h2>Experiments &amp; Results</h2>
-  <p style="font-size:15px;color:#444;margin-bottom:4px;">
-    Compared against SMART-LLM, LiP-LLM, and COHERENT across four dynamic scenario types
-    (task loss, robot failure, task priority, spatial constraint) in College and Warehouse environments.
-  </p>
-
-  <div class="results-wrap">
-    <table>
-      <thead>
-        <tr>
-          <th>Method</th>
-          <th>TCR ↑</th>
-          <th>CSR ↑</th>
-          <th>Time (s) ↓</th>
-          <th>Token (k) ↓</th>
-          <th>Path ↓</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr class="ours">
-          <td>EMTP</td>
-          <td class="best">1.00</td>
-          <td class="best">1.00</td>
-          <td class="best">42.1</td>
-          <td class="best">53.6k</td>
-          <td class="best">410.7</td>
-        </tr>
-        <tr>
-          <td>SMART-LLM</td>
-          <td>0.81</td>
-          <td>0.88</td>
-          <td>69.3</td>
-          <td>64.1k</td>
-          <td>905.7</td>
-        </tr>
-        <tr>
-          <td>LiP-LLM</td>
-          <td>0.82</td>
-          <td>0.82</td>
-          <td>138.5</td>
-          <td class="worst">344.7k</td>
-          <td>1150.9</td>
-        </tr>
-        <tr>
-          <td>COHERENT</td>
-          <td>0.91</td>
-          <td>0.95</td>
-          <td class="worst">203.5</td>
-          <td class="worst">412.5k</td>
-          <td class="worst">1334.0</td>
-        </tr>
-      </tbody>
-    </table>
-  </div>
-  <p style="font-size:12.5px;color:var(--muted);margin-top:10px;">
-    College environment · Robot Failure scenario. TCR: Task Completion Rate · CSR: Constraint Satisfaction Rate.
-  </p>
-</div>
-
-<div class="divider-full"></div>
-
-<!-- ══ VIDEO ══ -->
-<div class="section-alt-wrap" id="video">
-  <div class="section">
-    <h2>Video Demonstrations</h2>
-    <div class="video-grid">
-      <div class="video-item">
-        <h4>Scenario Ⅰ — Multi-floor Indoor (Real Robot)</h4>
-        <!--
-          실제 비디오:
-          <video controls>
-            <source src="static/videos/real_robot.mp4" type="video/mp4">
-          </video>
-        -->
-        <div class="video-placeholder">
-          <svg viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>
-          <span>real_robot.mp4</span>
+    <section id="abstract">
+      <div class="section-inner">
+        <div class="section-kicker">Abstract</div>
+        <div class="abstract">
+          <p>Dynamic task allocation in heterogeneous multi-robot systems requires efficient replanning under evolving environmental conditions and operator instructions. Conventional methods often rely on predefined models, while existing large language model (LLM)-based approaches suffer from increasing reasoning cost, hallucinations, and limited scalability when handling multiple tasks and dynamic constraints. This work proposes EMTP, an efficient multi-robot task planning framework that integrates 3D Scene Graph (3DSG)-based grounding with supervisor-based hierarchical LLM orchestration. EMTP selectively invokes semantic filtering, semantic reasoning, and optimization-based task allocation agents according to the type of dynamic event. This design reduces unnecessary reasoning overhead while supporting constraint-aware planning. The 3DSG provides structured environmental context for both LLM-based reasoning and optimization-based allocation. Simulation experiments in large-scale indoor environments demonstrate that EMTP achieves higher task completion and constraint satisfaction rates with lower planning computation time and token usage than existing LLM-based multi-robot planning methods, particularly in online replanning scenarios with accumulated dynamic constraints.</p>
+        </div>
+        <div class="keywords" aria-label="Research keywords">
+          <span class="keyword">Multi-Robot Task Allocation & Planning</span>
+          <span class="keyword">Efficient Replanning in Dynamic Environment</span>
         </div>
       </div>
-      <div class="video-item">
-        <h4>Scenario Ⅱ — Large-scale Simulation (10 Robots, 100 Tasks)</h4>
-        <div class="video-placeholder">
-          <svg viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>
-          <span>simulation.mp4</span>
+    </section>
+
+    <section id="method">
+      <div class="section-inner">
+        <div class="section-kicker">Overview</div>
+        <figure class="figure overview-figure">
+          <img src="assets/images/overview.png" alt="Overview of the EMTP framework">
+          <figcaption>Overview</figcaption>
+        </figure>
+
+        <div class="section-kicker">Method</div>
+
+        <div class="method-list">
+          <article class="method-item">
+            <div class="num">Method 01</div>
+            <h3>3DSG-Based Context Grounding</h3>
+            <p>As shown in the overview figure, the 3D Scene Graph provides a shared planning context across Semantic Filtering, Semantic Reasoning, and Task Allocation. By grounding each replanning step in the updated 3DSG rather than accumulated dialogue history, EMTP reduces omission and inconsistency caused by long interaction context and supports consistent online replanning.</p>
+          </article>
+
+          <article class="method-item">
+            <div class="num">Method 02</div>
+            <h3>Hierarchical Adaptive Orchestration</h3>
+            <p>The Supervisor manages the replanning pipeline by adaptively invoking only the modules required by each dynamic event and reusing cached information whenever full reprocessing is unnecessary.</p>
+            <ul class="module-list">
+              <li><span class="dot blue"></span><span><strong>Semantic Filtering</strong> selects task-relevant objects from the full object list and constructs a compact filtered 3DSG context.</span></li>
+              <li><span class="dot reason"></span><span><strong>Semantic Reasoning</strong> interprets dynamic events as task exclusions, priority constraints, or spatial restrictions.</span></li>
+              <li><span class="dot green"></span><span><strong>Task Allocation</strong> solves constrained assignment using verified context, robot capability, availability, and graph-based travel costs.</span></li>
+            </ul>
+
+            <div class="adaptive-compare">
+              <figure class="figure compact-figure">
+                <img src="assets/images/adaptive-replan-flow.png" alt="Adaptive replanning flow">
+                <figcaption>Adaptive replanning flow</figcaption>
+              </figure>
+
+              <div class="flow-board" aria-label="Adaptive invocation visualization">
+                <div class="module-row">
+                  <div class="module filtering">
+                    <h3><span class="dot blue"></span>Semantic Filtering</h3>
+                    <p>Selects task-relevant objects and builds the filtered 3DSG context.</p>
+                  </div>
+                  <div class="module reasoning">
+                    <h3><span class="dot reason"></span>Semantic Reasoning</h3>
+                    <p>Interprets dynamic events as task, priority, or spatial constraints.</p>
+                  </div>
+                  <div class="module allocation">
+                    <h3><span class="dot green"></span>Task Allocation</h3>
+                    <p>Solves constrained assignment and path-cost allocation.</p>
+                  </div>
+                </div>
+
+                <div class="event-table" aria-label="Adaptive module invocation by event type">
+                  <div class="event-row header">
+                    <div>Dynamic Event</div>
+                    <div>Semantic Filtering</div>
+                    <div>Semantic Reasoning</div>
+                    <div>Task Allocation</div>
+                  </div>
+                  <div class="event-row">
+                    <div>New Task</div>
+                    <div class="invoked filtering">Invoked</div>
+                    <div class="invoked reasoning">Invoked</div>
+                    <div class="invoked allocation">Invoked</div>
+                  </div>
+                  <div class="event-row">
+                    <div>Task Exclusion</div>
+                    <div class="cached">Cached context</div>
+                    <div class="invoked reasoning">Invoked</div>
+                    <div class="invoked allocation">Invoked</div>
+                  </div>
+                  <div class="event-row">
+                    <div>Priority / Spatial Constraint</div>
+                    <div class="cached">Cached context</div>
+                    <div class="invoked reasoning">Invoked</div>
+                    <div class="invoked allocation">Invoked</div>
+                  </div>
+                  <div class="event-row">
+                    <div>Robot Failure</div>
+                    <div class="cached">Cached context</div>
+                    <div class="cached">Cached constraints</div>
+                    <div class="invoked allocation">Invoked</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </article>
         </div>
       </div>
-    </div>
-  </div>
-</div>
+    </section>
 
-<div class="divider-full"></div>
+    <section id="setup">
+      <div class="section-inner">
+        <div class="section-kicker">Simulation Setup</div>
+        
+        <div class="setup-panel">
+          <h3>Task and Scenarios</h3>
+          <p class="setup-note">Task: inspect fire-safety equipment by visiting its locations.</p>
+          <div class="scenario-grid" aria-label="Simulation scenarios">
+            <div class="scenario-item">
+              <strong>Initial Planning under Static Constraints</strong>
+              <span>One constraint group is provided with the initial task instruction, and the system generates an initial allocation plan that reflects the given constraint.</span>
+            </div>
+            <div class="scenario-item">
+              <strong>Online Replanning under Dynamic Constraints</strong>
+              <span>Dynamic constraints are introduced during execution, and the system replans while reflecting accumulated constraints and updated robot/environment states.</span>
+            </div>
+          </div>
+        </div>
 
-<!-- ══ CITATION ══ -->
-<div class="section">
-  <h2>BibTeX</h2>
-  <div class="citation-block" id="bib">
-    <button class="copy-btn" onclick="copyBib()">Copy</button>
-    <span class="bib-key">@inproceedings{yourname2026emtp,</span><br>
-    &nbsp;&nbsp;<span class="bib-field">title</span>     = {<span class="bib-val">Efficient Multi-Robot Task Planning via Semantic 3D Scene Graphs and Hierarchical LLM Orchestration</span>},<br>
-    &nbsp;&nbsp;<span class="bib-field">author</span>    = {<span class="bib-val">Your Name and Co-Author and Advisor Name</span>},<br>
-    &nbsp;&nbsp;<span class="bib-field">booktitle</span> = {<span class="bib-val">ICRA 2026 Late Breaking Results</span>},<br>
-    &nbsp;&nbsp;<span class="bib-field">year</span>      = {<span class="bib-val">2026</span>},<br>
-    }
-  </div>
-</div>
+        <div class="setup-panel">
+          <h3>Environment</h3>
+          <div class="environment-images">
+            <div class="environment-item">
+              <img src="assets/images/env-a.png" alt="Environment A warehouse simulation map">
+              <strong>Environment A</strong>
+              <strong>single-floor</strong>
+              <strong>max 100 tasks</strong>
+            </div>
+            <div class="environment-item">
+              <img src="assets/images/env-b.png" alt="Environment B multi-floor simulation map">
+              <strong>Environment B</strong>
+              <strong>multi-floor ( inter-floor constraints )</strong>
+              <strong>max 50 tasks</strong>
+            </div>
+          </div>
+        </div>
+        
+        <figure class="figure constraint-figure">
+          <img src="assets/images/constraint-types-table.png" alt="Constraint types and representative examples">
+        </figure>
+      </div>
+    </section>
 
-<!-- ══ FOOTER ══ -->
-<footer>
-  <p>
-    This page template is inspired by the
-    <a href="https://github.com/nerfies/nerfies.github.io" target="_blank">Nerfies</a> project page.<br>
-    © 2026 Your Name ·
-    <a href="https://github.com/psi0000/EMTP_HP">View Source</a>
-  </p>
-</footer>
+    <section id="results">
+      <div class="section-inner">
+        <div class="section-kicker">Simulation Results</div>
+        <h2>Experiments by Scenario</h2>
 
-<script>
-  function copyBib() {
-    const text = `@inproceedings{yourname2026emtp,
-  title     = {Efficient Multi-Robot Task Planning via Semantic 3D Scene Graphs and Hierarchical LLM Orchestration},
-  author    = {Your Name and Co-Author and Advisor Name},
-  booktitle = {ICRA 2026 Late Breaking Results},
-  year      = {2026},
-}`;
-    navigator.clipboard.writeText(text).then(() => {
-      const btn = document.querySelector('.copy-btn');
-      btn.textContent = 'Copied!';
-      setTimeout(() => btn.textContent = 'Copy', 2000);
-    });
-  }
-</script>
+        <div class="result-pair">
+          <figure class="figure result-figure">
+            <figcaption>Initial Planning under Static Constraints</figcaption>
+            <img src="assets/images/initial-planning-table.png" alt="Initial planning result table">
+          </figure>
+          <figure class="figure result-figure">
+            <figcaption>Online Replanning under Dynamic Constraints</figcaption>
+            <img src="assets/images/online-replanning-table.png" alt="Online replanning result table">
+          </figure>
+        </div>
 
+        <div class="result-stack">
+          <figure class="figure result-figure">
+            <figcaption>Scalability Analysis</figcaption>
+            <img src="assets/images/scalability-results.png" alt="Scalability result plots">
+          </figure>
+        </div>
+      </div>
+    </section>
+
+    <section id="videos">
+      <div class="section-inner">
+        <div class="section-kicker">Videos</div>
+        
+        <div class="media-grid">
+          <article class="video-panel">
+            <video controls playsinline preload="metadata" poster="assets/images/overview.png">
+              <source src="simulation.mp4" type="video/mp4">
+              <source src="simulation-local.mp4" type="video/mp4">
+            </video>
+            <h3>Simulation</h3>
+            <p>Online Replanning under Dynamic Constraints simulation in Env A</p>
+          </article>
+          <article class="video-panel">
+            <video controls playsinline preload="metadata" poster="assets/images/experiment-initial.png">
+              <source src="experiment.mp4" type="video/mp4">
+              <source src="experiment-local.mp4" type="video/mp4">
+            </video>
+            <h3>Experiment</h3>
+            <p>Real-world Online Replanning under Dynamic Constraints</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section id="contact">
+      <div class="section-inner">
+        <div class="section-kicker">Contact</div>
+        <div class="contact-layout">
+          <div class="contact-copy">
+            <p class="lead">For questions about EMTP, please contact us.</p>
+            <div class="contact">
+              <a class="btn primary" href="mailto:qkrwk0921@unist.ac.kr">
+                <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16v16H4z"/><path d="m22 6-10 7L2 6"/></svg>
+                qkrwk0921@unist.ac.kr
+              </a>
+              <a class="btn" href="https://github.com/psi0000" target="_blank" rel="noopener">
+                <svg class="icon" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.58 2 12.26c0 4.54 2.87 8.39 6.84 9.75.5.09.68-.22.68-.49v-1.71c-2.78.62-3.37-1.37-3.37-1.37-.45-1.18-1.11-1.5-1.11-1.5-.91-.64.07-.63.07-.63 1 .07 1.53 1.06 1.53 1.06.89 1.57 2.34 1.12 2.91.86.09-.66.35-1.12.63-1.38-2.22-.26-4.56-1.14-4.56-5.07 0-1.12.39-2.03 1.03-2.75-.1-.26-.45-1.3.1-2.71 0 0 .84-.28 2.75 1.05A9.38 9.38 0 0 1 12 6.84c.85 0 1.7.12 2.5.34 1.91-1.33 2.75-1.05 2.75-1.05.55 1.41.2 2.45.1 2.71.64.72 1.03 1.63 1.03 2.75 0 3.94-2.34 4.81-4.57 5.06.36.32.68.94.68 1.9v2.82c0 .27.18.59.69.49C19.14 20.65 22 16.8 22 12.26 22 6.58 17.52 2 12 2z"/></svg>
+                GitHub
+              </a>
+            </div>
+          </div>
+          <div class="contact-logo" aria-label="FAIR Lab logo">
+            <img src="assets/images/fair-logo-black.png" alt="FAIR Lab logo">
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div>EMTP Project Page - UNIST / KAIST - FAIR Lab</div>
+  </footer>
 </body>
 </html>
